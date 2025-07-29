@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cálculo de Remuneração Disponível para Empréstimo Consignado</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            margin: 0 auto;
+            padding: 20px;
+            max-width: 900px;
+            background-color: #1a1a1a;
+            color: #f0f0f0;
+        }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo-container img {
+            max-width: 300px;
+            height: auto;
+        }
+
+        h2 {
+            color: #f0f0f0;
+            border-bottom: 2px solid #e74c3c;
+            padding-bottom: 10px;
+        }
+
+        .card {
+            background-color: #2c2c2c;
+            margin-bottom: 25px;
+            border: 1px solid #444;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .grid-container label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 5px;
+            color: #f0f0f0;
+        }
+
+        .grid-container input[type="text"],
+        .grid-container input[type="number"],
+        .grid-container select {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            background-color: #3a3a3a;
+            border: 1px solid #555;
+            border-radius: 5px;
+            color: #f0f0f0;
+            transition: border-color 0.3s, background-color 0.3s;
+        }
+
+        .grid-container input[type="text"]:focus,
+        .grid-container input[type="number"]:focus,
+        .grid-container select:focus {
+            border-color: #e74c3c;
+            background-color: #4a4a4a;
+            outline: none;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            border: 1px solid #444;
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #e74c3c;
+            color: white;
+            font-weight: 600;
+        }
+
+        tbody tr {
+            background-color: #3a3a3a;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #333333;
+        }
+
+        td input[type="text"],
+        td input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            background-color: #4a4a4a;
+            border: 1px solid #666;
+            color: #f0f0f0;
+            border-radius: 4px;
+        }
+
+        td input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #e74c3c;
+        }
+
+        .action-button {
+            background-color: #e74c3c;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+            margin-right: 10px;
+        }
+
+        .action-button:hover {
+            background-color: #c0392b;
+        }
+        
+        .export-button {
+            background-color: #3498db;
+        }
+        .export-button:hover {
+            background-color: #2980b9;
+        }
+
+
+        .summary-grid, .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            font-size: 1.1em;
+        }
+
+        .summary-grid div, .results-grid div {
+            padding: 15px;
+            background-color: #3a3a3a;
+            border-radius: 5px;
+        }
+
+        .summary-grid span, .results-grid span {
+            font-weight: 700;
+            color: #f0f0f0;
+            float: right;
+            background-color: #4a4a4a;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        
+        #limiteConsignadoContainer {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #c0392b;
+            border: 1px solid #e74c3c;
+            color: #ffffff;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 1.2em;
+        }
+
+        #limiteConsignadoContainer strong {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        #aprovisionamentoResultContainer {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #4a4a4a;
+            border: 1px solid #555;
+            color: #ffffff;
+            border-radius: 5px;
+            font-size: 1.1em;
+            min-height: 50px;
+        }
+    </style>
+</head>
+<body>
+    <div class="logo-container">
+        <img src="https://i.postimg.cc/QVzDwYPQ/2.png" alt="Logo Marcos Contabilidade">
+    </div>
+
+    <div class="card">
+        <h2>Informações da Empresa e Funcionário</h2>
+        <div class="grid-container">
+            <div>
+                <label for="nomeEmpresa">Nome da Empresa:</label>
+                <input type="text" id="nomeEmpresa">
+            </div>
+            <div>
+                <label for="codigoEmpresa">Código da Empresa:</label>
+                <input type="text" id="codigoEmpresa" maxlength="10">
+            </div>
+            <div>
+                <label for="nomeFuncionario">Nome do Funcionário:</label>
+                <input type="text" id="nomeFuncionario">
+            </div>
+            <div>
+                <label for="codigoFuncionario">Código do Funcionário:</label>
+                <input type="text" id="codigoFuncionario" maxlength="10">
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Lançamentos de Vencimentos e Descontos</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Rubrica</th>
+                    <th>Descrição</th>
+                    <th>Referência</th>
+                    <th>Compõe Base</th>
+                    <th>Vencimentos</th>
+                    <th>Descontos</th>
+                </tr>
+            </thead>
+            <tbody id="lancamentosBody">
+                <!-- Linhas de lançamento serão adicionadas aqui via JavaScript -->
+            </tbody>
+        </table>
+        <button class="action-button" onclick="adicionarLinha()">+ Adicionar Lançamento</button>
+    </div>
+
+    <div class="card">
+        <h2>Cálculo de Aprovisionamento de Adiantamento</h2>
+        <div class="grid-container">
+             <div>
+                <label for="existeAdiantamento">Existe Adiantamento?</label>
+                <select id="existeAdiantamento" onchange="calcularAprovisionamento()">
+                    <option value="0">Não</option>
+                    <option value="0.4">40%</option>
+                    <option value="0.5">50%</option>
+                </select>
+            </div>
+            <div>
+                <label for="salarioBaseAdiantamento">Salário Base do Adiantamento:</label>
+                <input type="number" id="salarioBaseAdiantamento" oninput="calcularAprovisionamento()" placeholder="Digite o salário base" min="0" step="0.01">
+            </div>
+            <div>
+                <label for="valorParcela">Valor da Parcela:</label>
+                <input type="number" id="valorParcela" oninput="calcularAprovisionamento()" placeholder="Digite o valor da parcela" min="0" step="0.01">
+            </div>
+        </div>
+        <div id="aprovisionamentoResultContainer">
+             <!-- Resultado do cálculo de aprovisionamento será exibido aqui -->
+             Selecione uma opção de adiantamento para iniciar o cálculo.
+        </div>
+    </div>
+
+
+    <div class="card">
+        <h2>Totais e Resultados</h2>
+        <div class="summary-grid">
+            <div>Total de Vencimentos: <span id="totalVencimentos">R$ 0,00</span></div>
+            <div>Total de Descontos: <span id="totalDescontos">R$ 0,00</span></div>
+        </div>
+        <hr style="margin: 20px 0; border-color: #444;">
+        <div class="results-grid">
+            <div>Valor Líquido: <span id="valorLiquido">R$ 0,00</span></div>
+            <div>Remuneração Disponível: <span id="remuneracaoDisponivel">R$ 0,00</span></div>
+        </div>
+        
+        <div id="limiteConsignadoContainer">
+            <strong>Limite para Empréstimo Consignado (35%)</strong>
+            <span id="limiteConsignado" style="font-size: 1.5em; float: none;">R$ 0,00</span>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Exportação</h2>
+         <button class="action-button export-button" onclick="gerarTxt()">Gerar TXT para Importação</button>
+    </div>
+
+    <script>
+        // Função para formatar números como moeda brasileira (BRL)
+        function formatarMoeda(valor) {
+            return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        // Função para adicionar uma nova linha de lançamento na tabela
+        function adicionarLinha() {
+            const tbody = document.getElementById('lancamentosBody');
+            const newRow = tbody.insertRow();
+            newRow.innerHTML = `
+                <td><input type="text" class="rubrica" placeholder="Ex: 9755"></td>
+                <td><input type="text" class="descricao" placeholder="Ex: Salário Base"></td>
+                <td><input type="text" class="referencia" placeholder="Ex: 30 dias"></td>
+                <td style="text-align: center;"><input type="checkbox" class="compoeBase" onchange="calcularTudo()" checked></td>
+                <td><input type="number" class="vencimento" oninput="calcularTudo()" placeholder="0,00" min="0" step="0.01"></td>
+                <td><input type="number" class="desconto" oninput="calcularTudo()" placeholder="0,00" min="0" step="0.01"></td>
+            `;
+        }
+        
+        // Função para calcular o aprovisionamento do adiantamento
+        function calcularAprovisionamento() {
+            const porcentagem = parseFloat(document.getElementById('existeAdiantamento').value);
+            const salarioBase = parseFloat(document.getElementById('salarioBaseAdiantamento').value) || 0;
+            const valorParcela = parseFloat(document.getElementById('valorParcela').value) || 0;
+            const resultadoContainer = document.getElementById('aprovisionamentoResultContainer');
+
+            if (porcentagem === 0) {
+                resultadoContainer.innerHTML = 'Selecione uma opção de adiantamento para iniciar o cálculo.';
+                return;
+            }
+
+            const valorASerDescontado = valorParcela * porcentagem;
+            const valorAdiantamento = salarioBase * porcentagem;
+            const remuneracaoDisponivelAdiantamento = valorAdiantamento * 0.35;
+            const conferencia = remuneracaoDisponivelAdiantamento - valorASerDescontado;
+
+            let resultadoHTML = `
+                <strong>Detalhes do Cálculo:</strong><br>
+                Valor a ser descontado: ${formatarMoeda(valorASerDescontado)}<br>
+                Remuneração Disponível para o Adiantamento: ${formatarMoeda(remuneracaoDisponivelAdiantamento)}<br>
+                Diferença: ${formatarMoeda(conferencia)}<br><hr style="border-color: #666;">
+            `;
+
+            if (conferencia < 0) {
+                const valorFaltante = Math.abs(conferencia);
+                resultadoHTML += `<strong style="color: #ffc107;">Rubrica 981 - Aprovisionamento máximo: ${formatarMoeda(remuneracaoDisponivelAdiantamento)}</strong><br>`;
+                resultadoHTML += `<strong style="color: #e74c3c;">Faltará a recolher no adiantamento: ${formatarMoeda(valorFaltante)}</strong>`;
+            } else {
+                 resultadoHTML += `<strong style="color: #28a745;">Rubrica 981 - Aprovisionamento: ${formatarMoeda(valorASerDescontado)}</strong>`;
+            }
+            
+            resultadoContainer.innerHTML = resultadoHTML;
+        }
+
+
+        // Função principal para calcular todos os totais e resultados
+        function calcularTudo() {
+            let totalVencimentos = 0;
+            let totalDescontos = 0;
+            let baseCalculoRemuneracao = 0;
+
+            const linhas = document.getElementById('lancamentosBody').rows;
+            for (let i = 0; i < linhas.length; i++) {
+                const vencimentoInput = linhas[i].querySelector('.vencimento');
+                const descontoInput = linhas[i].querySelector('.desconto');
+                const compoeBaseCheckbox = linhas[i].querySelector('.compoeBase');
+
+                const vencimento = parseFloat(vencimentoInput.value) || 0;
+                const desconto = parseFloat(descontoInput.value) || 0;
+
+                totalVencimentos += vencimento;
+                totalDescontos += desconto;
+
+                if (compoeBaseCheckbox.checked) {
+                    baseCalculoRemuneracao += vencimento;
+                }
+            }
+            
+            const remuneracaoDisponivel = Math.max(0, baseCalculoRemuneracao - totalDescontos);
+            const valorLiquido = totalVencimentos - totalDescontos;
+            const limiteConsignado = remuneracaoDisponivel * 0.35;
+
+            document.getElementById('totalVencimentos').innerText = formatarMoeda(totalVencimentos);
+            document.getElementById('totalDescontos').innerText = formatarMoeda(totalDescontos);
+            document.getElementById('valorLiquido').innerText = formatarMoeda(valorLiquido);
+            document.getElementById('remuneracaoDisponivel').innerText = formatarMoeda(remuneracaoDisponivel);
+            document.getElementById('limiteConsignado').innerText = formatarMoeda(limiteConsignado);
+        }
+
+        // Função para gerar o arquivo TXT
+        function gerarTxt() {
+            const codigoEmpresa = document.getElementById('codigoEmpresa').value.padStart(10, '0');
+            const codigoFuncionario = document.getElementById('codigoFuncionario').value.padStart(10, '0');
+
+            if (!codigoEmpresa || !codigoFuncionario || codigoEmpresa === '0000000000' || codigoFuncionario === '0000000000') {
+                alert('Por favor, preencha o Código da Empresa e o Código do Funcionário.');
+                return;
+            }
+
+            const data = new Date();
+            const mes = String(data.getMonth() + 1).padStart(2, '0');
+            const ano = data.getFullYear();
+            const competencia = `${ano}${mes}`;
+
+            let txtContent = "";
+
+            // Lógica para as rubricas da tabela
+            const linhas = document.getElementById('lancamentosBody').rows;
+            for (let i = 0; i < linhas.length; i++) {
+                const rubrica = linhas[i].querySelector('.rubrica').value.padStart(9, '0');
+                const valorVencimento = parseFloat(linhas[i].querySelector('.vencimento').value) || 0;
+                const valorDesconto = parseFloat(linhas[i].querySelector('.desconto').value) || 0;
+
+                let valorFinal = 0;
+                if (valorVencimento > 0) {
+                    valorFinal = valorVencimento;
+                } else if (valorDesconto > 0) {
+                    valorFinal = valorDesconto;
+                }
+                
+                if (valorFinal > 0) {
+                     const valorFormatado = String(Math.trunc(valorFinal * 100)).padStart(9, '0');
+                     // Rubricas 9755 e 9750 são mensais (11)
+                     const tipoProcesso = (rubrica.endsWith('9755') || rubrica.endsWith('9750')) ? '11' : '00';
+
+                     txtContent += `10${codigoFuncionario}${competencia}${rubrica}${tipoProcesso}${valorFormatado}${codigoEmpresa}\n`;
+                }
+            }
+
+            // Lógica para a rubrica de aprovisionamento (981)
+            const porcentagem = parseFloat(document.getElementById('existeAdiantamento').value);
+            if (porcentagem > 0) {
+                const salarioBase = parseFloat(document.getElementById('salarioBaseAdiantamento').value) || 0;
+                const valorParcela = parseFloat(document.getElementById('valorParcela').value) || 0;
+                
+                const valorASerDescontado = valorParcela * porcentagem;
+                const valorAdiantamento = salarioBase * porcentagem;
+                const remuneracaoDisponivelAdiantamento = valorAdiantamento * 0.35;
+                const conferencia = remuneracaoDisponivelAdiantamento - valorASerDescontado;
+                
+                let valorAprovisionamento = 0;
+                if (conferencia < 0) {
+                    valorAprovisionamento = remuneracaoDisponivelAdiantamento;
+                } else {
+                    valorAprovisionamento = valorASerDescontado;
+                }
+
+                if (valorAprovisionamento > 0) {
+                     const rubricaAprovisionamento = '000000981';
+                     const tipoProcessoAprovisionamento = '41'; // Adiantamento
+                     const valorFormatadoAprovisionamento = String(Math.trunc(valorAprovisionamento * 100)).padStart(9, '0');
+                     txtContent += `10${codigoFuncionario}${competencia}${rubricaAprovisionamento}${tipoProcessoAprovisionamento}${valorFormatadoAprovisionamento}${codigoEmpresa}\n`;
+                }
+            }
+            
+            // Cria e baixa o arquivo TXT
+            const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `lancamentos_${competencia}.txt`;
+            link.click();
+            URL.revokeObjectURL(link.href);
+        }
+
+
+        // Adiciona uma linha inicial e executa os cálculos ao carregar a página
+        window.onload = function() {
+            adicionarLinha();
+            calcularTudo();
+            calcularAprovisionamento();
+        };
+    </script>
+
+</body>
+</html>
